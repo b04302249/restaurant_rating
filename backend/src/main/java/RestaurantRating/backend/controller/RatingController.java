@@ -50,6 +50,13 @@ public class RatingController {
         return toResponse(ratingService.findById(id));
     }
 
+    @GetMapping("/restaurant/{restaurantId}")
+    public List<RatingResponse> findByRestaurantId(@PathVariable Long restaurantId) {
+        return ratingService.findByRestaurantId(restaurantId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private RatingResponse toResponse(Rating rating) {
         return new RatingResponse(
                 rating.getId(),
@@ -67,7 +74,7 @@ public class RatingController {
             @NotNull Long restaurantId,
             @NotNull Long userId,
             Long eventId,
-            @NotNull @Min(1) @Max(5) Short score,
+            @NotNull @Min(0) @Max(100) Short score,
             String comment,
             LocalDate visitedAt
     ) {

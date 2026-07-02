@@ -67,6 +67,10 @@ public class RatingService {
         return ratingRepository.findAll();
     }
 
+    public List<Rating> findByRestaurantId(Long restaurantId) {
+        return ratingRepository.findByRestaurantId(restaurantId);
+    }
+
     public Rating findById(Long id) {
         return ratingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rating not found: " + id));

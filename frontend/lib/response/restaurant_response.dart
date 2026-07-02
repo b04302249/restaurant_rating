@@ -16,9 +16,9 @@ class RestaurantResponse {
 
   final int id;
   final String name;
-  final String area;
-  final String category;
-  final String address;
+  final String? area;
+  final String? category;
+  final String? address;
   final String? note;
   final String createdAt;
 

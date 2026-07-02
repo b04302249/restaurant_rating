@@ -60,9 +60,9 @@ public class RestaurantController {
 
     public record CreateRestaurantRequest(
             @NotBlank String name,
-            @NotBlank String area,
-            @NotBlank String category,
-            @NotBlank String address,
+            String area,
+            String category,
+            String address,
             String note
     ) {
     }

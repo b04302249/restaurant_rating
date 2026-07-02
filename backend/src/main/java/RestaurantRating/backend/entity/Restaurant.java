@@ -18,13 +18,13 @@ public class Restaurant {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String area;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String category;
 
-    @Column(nullable = false)
+    @Column
     private String address;
 
     @Column(columnDefinition = "TEXT")
