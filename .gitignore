@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDEs
+.idea/
+**/.idea/
+*.iml
+**/*.iml
+
+# Editors
+.vscode/
+
+# Local environment artifacts
+backend/local.properties
+backend/data/*.mv.db
+backend/data/*.trace.db
+backend/data/*.lock.db
