@@ -188,9 +188,6 @@ class _LauncherPageState extends State<LauncherPage> {
                 Text('地區：${restaurant.area}'),
                 Text('分類：${restaurant.category}'),
                 Text('地址：${restaurant.address}'),
-                if (restaurant.note != null &&
-                    restaurant.note!.trim().isNotEmpty)
-                  Text('備註：${restaurant.note}'),
               ],
             ),
           ),

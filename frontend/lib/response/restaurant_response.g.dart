@@ -13,8 +13,6 @@ RestaurantResponse _$RestaurantResponseFromJson(Map<String, dynamic> json) =>
       area: json['area'] as String?,
       category: json['category'] as String?,
       address: json['address'] as String?,
-      note: json['note'] as String?,
-      createdAt: json['createdAt'] as String,
     );
 
 Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
@@ -24,6 +22,4 @@ Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
       'area': instance.area,
       'category': instance.category,
       'address': instance.address,
-      'note': instance.note,
-      'createdAt': instance.createdAt,
     };

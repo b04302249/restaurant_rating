@@ -10,8 +10,6 @@ class RestaurantResponse {
     required this.area,
     required this.category,
     required this.address,
-    required this.note,
-    required this.createdAt,
   });
 
   final int id;
@@ -19,8 +17,6 @@ class RestaurantResponse {
   final String? area;
   final String? category;
   final String? address;
-  final String? note;
-  final String createdAt;
 
   factory RestaurantResponse.fromJson(Map<String, dynamic> json) =>
       _$RestaurantResponseFromJson(json);

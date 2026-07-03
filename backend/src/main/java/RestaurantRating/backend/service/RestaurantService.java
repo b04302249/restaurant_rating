@@ -1,5 +1,6 @@
 package RestaurantRating.backend.service;
 
+import RestaurantRating.backend.entity.Category;
 import RestaurantRating.backend.entity.Restaurant;
 import RestaurantRating.backend.repository.RestaurantRepository;
 import java.util.List;
@@ -15,13 +16,13 @@ public class RestaurantService {
         this.restaurantRepository = restaurantRepository;
     }
 
-    public Restaurant create(String name, String area, String category, String address, String note) {
+    public Restaurant create(String name, String area, List<Category> categories, String googleMapLink, String businessHours) {
         Restaurant restaurant = new Restaurant();
         restaurant.setName(name);
         restaurant.setArea(area);
-        restaurant.setCategory(category);
-        restaurant.setAddress(address);
-        restaurant.setNote(note);
+        restaurant.setCategories(categories);
+        restaurant.setGoogleMapLink(googleMapLink);
+        restaurant.setBusinessHours(businessHours);
         return restaurantRepository.save(restaurant);
     }
 

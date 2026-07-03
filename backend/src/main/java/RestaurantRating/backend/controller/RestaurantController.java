@@ -1,9 +1,9 @@
 package RestaurantRating.backend.controller;
 
+import RestaurantRating.backend.entity.Category;
 import RestaurantRating.backend.entity.Restaurant;
 import RestaurantRating.backend.service.RestaurantService;
 import jakarta.validation.constraints.NotBlank;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,9 +28,9 @@ public class RestaurantController {
         return toResponse(restaurantService.create(
                 request.name(),
                 request.area(),
-                request.category(),
-                request.address(),
-                request.note()
+                request.categories(),
+                request.googleMapLink(),
+                request.businessHours()
         ));
     }
 
@@ -51,19 +51,18 @@ public class RestaurantController {
                 restaurant.getId(),
                 restaurant.getName(),
                 restaurant.getArea(),
-                restaurant.getCategory(),
-                restaurant.getAddress(),
-                restaurant.getNote(),
-                restaurant.getCreatedAt()
+                restaurant.getCategories(),
+                restaurant.getGoogleMapLink(),
+                restaurant.getBusinessHours()
         );
     }
 
     public record CreateRestaurantRequest(
             @NotBlank String name,
             String area,
-            String category,
-            String address,
-            String note
+            List<Category> categories,
+            String googleMapLink,
+            String businessHours
     ) {
     }
 
@@ -71,10 +70,9 @@ public class RestaurantController {
             Long id,
             String name,
             String area,
-            String category,
-            String address,
-            String note,
-            Instant createdAt
+            List<Category> categories,
+            String googleMapLink,
+            String businessHours
     ) {
     }
 }

@@ -186,9 +186,6 @@ class LauncherPage extends HookWidget {
                   Text('分類：${restaurant.category}'),
                 if (restaurant.address != null && restaurant.address!.trim().isNotEmpty)
                   Text('地址：${restaurant.address}'),
-                if (restaurant.note != null &&
-                    restaurant.note!.trim().isNotEmpty)
-                  Text('備註：${restaurant.note}'),
                 const SizedBox(height: 12),
                 _buildRatingRow(context, restaurant.id, theme, vm),
               ],
