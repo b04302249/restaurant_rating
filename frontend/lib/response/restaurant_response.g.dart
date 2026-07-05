@@ -13,6 +13,11 @@ RestaurantResponse _$RestaurantResponseFromJson(Map<String, dynamic> json) =>
       area: json['area'] as String?,
       category: json['category'] as String?,
       address: json['address'] as String?,
+      ratings:
+          (json['ratings'] as List<dynamic>?)
+              ?.map((e) => RatingResponse.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
@@ -22,4 +27,5 @@ Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
       'area': instance.area,
       'category': instance.category,
       'address': instance.address,
+      'ratings': instance.ratings,
     };

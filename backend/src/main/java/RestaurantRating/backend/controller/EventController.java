@@ -53,7 +53,7 @@ public class EventController {
                 event.getId(),
                 event.getTitle(),
                 event.getEventDate(),
-                event.getRestaurant().getId(),
+                event.getRestaurant() == null ? null : event.getRestaurant().getId(),
                 event.getUsers().stream().map(user -> user.getId()).toList(),
                 event.getRatings().stream().map(rating -> rating.getId()).toList(),
                 event.getCreatedAt()
@@ -63,7 +63,7 @@ public class EventController {
     public record CreateEventRequest(
             @NotBlank String title,
             @NotNull LocalDate eventDate,
-            @NotNull Long restaurantId,
+            Long restaurantId,
             List<Long> participantUserIds,
             List<Long> ratingIds
     ) {

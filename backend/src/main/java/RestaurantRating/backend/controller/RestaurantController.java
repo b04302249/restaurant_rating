@@ -1,9 +1,13 @@
 package RestaurantRating.backend.controller;
 
 import RestaurantRating.backend.entity.Category;
+import RestaurantRating.backend.entity.Rating;
 import RestaurantRating.backend.entity.Restaurant;
+import RestaurantRating.backend.repository.RatingRepository;
 import RestaurantRating.backend.service.RestaurantService;
 import jakarta.validation.constraints.NotBlank;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
     private final RestaurantService restaurantService;
+    private final RatingRepository ratingRepository;
 
-    public RestaurantController(RestaurantService restaurantService) {
+    public RestaurantController(RestaurantService restaurantService, RatingRepository ratingRepository) {
         this.restaurantService = restaurantService;
+        this.ratingRepository = ratingRepository;
     }
 
     @PostMapping
@@ -47,13 +53,29 @@ public class RestaurantController {
     }
 
     private RestaurantResponse toResponse(Restaurant restaurant) {
+        List<RatingResponse> ratings = ratingRepository.findByRestaurantId(restaurant.getId()).stream()
+                .map(this::toRatingResponse)
+                .toList();
         return new RestaurantResponse(
                 restaurant.getId(),
                 restaurant.getName(),
                 restaurant.getArea(),
                 restaurant.getCategories(),
                 restaurant.getGoogleMapLink(),
-                restaurant.getBusinessHours()
+                restaurant.getBusinessHours(),
+                ratings
+        );
+    }
+
+    private RatingResponse toRatingResponse(Rating rating) {
+        return new RatingResponse(
+                rating.getId(),
+                rating.getUser() == null ? null : rating.getUser().getId(),
+                rating.getEvent() == null ? null : rating.getEvent().getId(),
+                rating.getScore(),
+                rating.getComment(),
+                rating.getVisitedAt(),
+                rating.getCreatedAt()
         );
     }
 
@@ -72,7 +94,19 @@ public class RestaurantController {
             String area,
             List<Category> categories,
             String googleMapLink,
-            String businessHours
+            String businessHours,
+            List<RatingResponse> ratings
+    ) {
+    }
+
+    public record RatingResponse(
+            Long id,
+            Long userId,
+            Long eventId,
+            Short score,
+            String comment,
+            LocalDate visitedAt,
+            Instant createdAt
     ) {
     }
 }

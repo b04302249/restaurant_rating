@@ -43,9 +43,12 @@ public class EventService {
             List<Long> participantUserIds,
             List<Long> ratingIds
     ) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Restaurant not found: " + restaurantId));
+        Restaurant restaurant = null;
+        if (restaurantId != null) {
+            restaurant = restaurantRepository.findById(restaurantId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Restaurant not found: " + restaurantId));
+        }
 
         List<Long> safeParticipantIds = participantUserIds == null ? Collections.emptyList() : participantUserIds;
         List<User> users = safeParticipantIds.isEmpty() ? Collections.emptyList() : userRepository.findAllById(safeParticipantIds);
@@ -68,7 +71,7 @@ public class EventService {
             }
 
             for (Rating rating : ratings) {
-                if (!rating.getRestaurant().getId().equals(restaurantId)) {
+                if (restaurantId != null && !rating.getRestaurant().getId().equals(restaurantId)) {
                     throw new ResponseStatusException(
                             HttpStatus.BAD_REQUEST, "Rating " + rating.getId() + " belongs to a different restaurant");
                 }

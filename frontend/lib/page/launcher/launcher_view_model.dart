@@ -2,23 +2,26 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
+import '../../response/event_response.dart';
 import '../../response/rating_response.dart';
 import '../../response/restaurant_response.dart';
 import '../../utils/http_request_utils.dart';
 
 class LauncherViewModel extends ChangeNotifier {
-  LauncherViewModel() {
+  LauncherViewModel({required int initialUserId}) : _initialUserId = initialUserId {
     _apiClient = RestaurantApiClient();
     baseUrlController = TextEditingController(text: _apiClient.defaultBaseUrl);
-    userIdController = TextEditingController(text: '1');
+    userIdController = TextEditingController(text: initialUserId.toString());
     loadRestaurants();
   }
 
+  final int _initialUserId;
   late final RestaurantApiClient _apiClient;
   late final TextEditingController baseUrlController;
   late final TextEditingController userIdController;
 
-  int get currentUserId => int.tryParse(userIdController.text.trim()) ?? 1;
+  int get currentUserId =>
+      int.tryParse(userIdController.text.trim()) ?? _initialUserId;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -29,10 +32,17 @@ class LauncherViewModel extends ChangeNotifier {
   List<RestaurantResponse> _restaurants = const [];
   List<RestaurantResponse> get restaurants => _restaurants;
 
-  // Rating state: restaurantId -> list of ratings
-  final Map<int, List<RatingResponse>> _ratingsMap = {};
-  List<RatingResponse> ratingsFor(int restaurantId) =>
-      _ratingsMap[restaurantId] ?? const [];
+  List<EventResponse> _events = const [];
+  List<EventResponse> get events => _events;
+
+  String? _eventErrorMessage;
+  String? get eventErrorMessage => _eventErrorMessage;
+
+  // Rating helpers — ratings come embedded in restaurant response
+  List<RatingResponse> ratingsFor(int restaurantId) {
+    final restaurant = _restaurants.where((r) => r.id == restaurantId).firstOrNull;
+    return restaurant?.ratings ?? const [];
+  }
 
   double? averageScoreFor(int restaurantId) {
     final ratings = ratingsFor(restaurantId);
@@ -56,37 +66,35 @@ class LauncherViewModel extends ChangeNotifier {
   Future<void> loadRestaurants() async {
     _isLoading = true;
     _errorMessage = null;
+    _eventErrorMessage = null;
     notifyListeners();
 
     try {
-      final restaurants = await _apiClient.fetchRestaurants(
+      final restaurants = await _apiClient.fetchUserRestaurants(
         baseUrlController.text,
+        currentUserId,
       );
       _restaurants = restaurants;
-      // Load ratings for all restaurants
-      await _loadAllRatings();
-    } catch (error) {
-      _errorMessage = '$error';
+      await loadEvents();
+    } catch (error, stackTrace) {
+      _errorMessage = '$error\n$stackTrace';
       _restaurants = const [];
-      rethrow;
+      _events = const [];
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> _loadAllRatings() async {
-    for (final restaurant in _restaurants) {
-      try {
-        final ratings = await _apiClient.fetchRatingsByRestaurant(
-          baseUrlController.text,
-          restaurant.id,
-        );
-        _ratingsMap[restaurant.id] = ratings;
-      } catch (_) {
-        _ratingsMap[restaurant.id] = const [];
-      }
+  Future<void> loadEvents() async {
+    try {
+      _eventErrorMessage = null;
+      _events = await _apiClient.fetchEvents(baseUrlController.text);
+    } catch (error, stackTrace) {
+      _eventErrorMessage = '活動載入失敗：$error\n$stackTrace';
+      _events = const [];
     }
+    notifyListeners();
   }
 
   Future<void> submitRating({
@@ -105,14 +113,82 @@ class LauncherViewModel extends ChangeNotifier {
         score: score,
         comment: comment,
       );
-      // Reload ratings for this restaurant
-      final ratings = await _apiClient.fetchRatingsByRestaurant(
+      final restaurants = await _apiClient.fetchUserRestaurants(
         baseUrlController.text,
+        currentUserId,
+      );
+      _restaurants = restaurants;
+    } catch (error, stackTrace) {
+      _errorMessage = '評分失敗：$error\n$stackTrace';
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addRestaurant(int restaurantId) async {
+    _isSubmitting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _apiClient.addUserRestaurant(
+        baseUrlController.text,
+        currentUserId,
         restaurantId,
       );
-      _ratingsMap[restaurantId] = ratings;
-    } catch (error) {
-      _errorMessage = '評分失敗：$error';
+      await loadRestaurants();
+    } catch (error, stackTrace) {
+      _errorMessage = '加入餐廳失敗：$error\n$stackTrace';
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeRestaurant(int restaurantId) async {
+    _isSubmitting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _apiClient.removeUserRestaurant(
+        baseUrlController.text,
+        currentUserId,
+        restaurantId,
+      );
+      await loadRestaurants();
+    } catch (error, stackTrace) {
+      _errorMessage = '移除餐廳失敗：$error\n$stackTrace';
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> createEvent({
+    required String title,
+    required String eventDate,
+    int? restaurantId,
+    List<int> participantUserIds = const [],
+    List<int> ratingIds = const [],
+  }) async {
+    _isSubmitting = true;
+    _eventErrorMessage = null;
+    notifyListeners();
+
+    try {
+      await _apiClient.createEvent(
+        baseUrlController.text,
+        title: title,
+        eventDate: eventDate,
+        restaurantId: restaurantId,
+        participantUserIds: participantUserIds,
+        ratingIds: ratingIds,
+      );
+      await loadEvents();
+    } catch (error, stackTrace) {
+      _eventErrorMessage = '建立活動失敗：$error\n$stackTrace';
     } finally {
       _isSubmitting = false;
       notifyListeners();
@@ -129,32 +205,7 @@ class LauncherViewModel extends ChangeNotifier {
     if (_restaurants.isEmpty) return null;
 
     final random = Random();
-    final now = DateTime.now();
-    final weights = _restaurants.map((r) {
-      final avg = averageScoreFor(r.id);
-      final scoreWeight = avg ?? 50.0;
-
-      // Find the current user's most recent rating for this restaurant
-      final userRatings = ratingsFor(r.id)
-          .where((rating) => rating.userId == currentUserId)
-          .toList();
-
-      double decay = 1.0;
-      if (userRatings.isNotEmpty) {
-        // Use createdAt to determine recency
-        final latest = userRatings.last;
-        if (latest.createdAt != null) {
-          final lastDate = DateTime.tryParse(latest.createdAt!);
-          if (lastDate != null) {
-            final daysSince = now.difference(lastDate).inDays;
-            decay = (daysSince / 30.0).clamp(0.1, 1.0);
-          }
-        }
-      }
-
-      return scoreWeight * decay;
-    }).toList();
-
+    final weights = computeWeights();
     final totalWeight = weights.fold<double>(0, (sum, w) => sum + w);
     if (totalWeight == 0) {
       return _restaurants[random.nextInt(_restaurants.length)];
@@ -168,6 +219,47 @@ class LauncherViewModel extends ChangeNotifier {
     return _restaurants.last;
   }
 
+  /// Returns the raw weight for each restaurant (same order as [restaurants]).
+  List<double> computeWeights() {
+    final now = DateTime.now();
+    return _restaurants.map((r) {
+      final avg = averageScoreFor(r.id);
+      final scoreWeight = avg ?? 50.0;
+
+      final userRatings = ratingsFor(r.id)
+          .where((rating) => rating.userId == currentUserId)
+          .toList();
+
+      double decay = 1.0;
+      if (userRatings.isNotEmpty) {
+        final latest = userRatings.last;
+        if (latest.createdAt != null) {
+          final lastDate = DateTime.tryParse(latest.createdAt!);
+          if (lastDate != null) {
+            final daysSince = now.difference(lastDate).inDays;
+            decay = (daysSince / 30.0).clamp(0.1, 1.0);
+          }
+        }
+      }
+
+      return scoreWeight * decay;
+    }).toList();
+  }
+
+  /// Returns a map of restaurantId -> probability (0.0 ~ 1.0).
+  Map<int, double> computeProbabilities() {
+    final weights = computeWeights();
+    final totalWeight = weights.fold<double>(0, (sum, w) => sum + w);
+    if (totalWeight == 0) {
+      final uniform = _restaurants.isEmpty ? 0.0 : 1.0 / _restaurants.length;
+      return {for (final r in _restaurants) r.id: uniform};
+    }
+    return {
+      for (var i = 0; i < _restaurants.length; i++)
+        _restaurants[i].id: weights[i] / totalWeight,
+    };
+  }
+
   @override
   void dispose() {
     baseUrlController.dispose();
@@ -175,4 +267,3 @@ class LauncherViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-

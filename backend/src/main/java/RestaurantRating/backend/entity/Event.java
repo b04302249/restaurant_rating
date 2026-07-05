@@ -30,8 +30,8 @@ public class Event {
     @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "restaurant_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "restaurant_id", nullable = true)
     private Restaurant restaurant;
 
     @ManyToMany(fetch = FetchType.LAZY)

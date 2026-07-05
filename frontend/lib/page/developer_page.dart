@@ -64,11 +64,11 @@ class _DeveloperPageState extends State<DeveloperPage> {
       setState(() {
         _result = 'GET /api/users\n${encoder.convert(users)}';
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) return;
 
       setState(() {
-        _result = 'GET /api/users\n$error';
+        _result = 'GET /api/users\n$error\n$stackTrace';
       });
     } finally {
       if (mounted) {
@@ -99,13 +99,13 @@ class _DeveloperPageState extends State<DeveloperPage> {
       setState(() {
         _result = '$label\n${encoder.convert(response)}';
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _result = '$label\n$error';
+        _result = '$label\n$error\n$stackTrace';
       });
     } finally {
       if (mounted) {
@@ -303,11 +303,11 @@ class _DeveloperPageState extends State<DeveloperPage> {
       setState(() {
         _result = 'POST /api/users\n${encoder.convert(response)}';
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) return;
 
       setState(() {
-        _result = 'POST /api/users\n$error';
+        _result = 'POST /api/users\n$error\n$stackTrace';
       });
     } finally {
       if (mounted) {

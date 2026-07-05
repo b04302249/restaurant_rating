@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'rating_response.dart';
+
 part 'restaurant_response.g.dart';
 
 @JsonSerializable()
@@ -10,6 +12,7 @@ class RestaurantResponse {
     required this.area,
     required this.category,
     required this.address,
+    this.ratings = const [],
   });
 
   final int id;
@@ -17,6 +20,7 @@ class RestaurantResponse {
   final String? area;
   final String? category;
   final String? address;
+  final List<RatingResponse> ratings;
 
   factory RestaurantResponse.fromJson(Map<String, dynamic> json) =>
       _$RestaurantResponseFromJson(json);

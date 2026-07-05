@@ -4,13 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:restaurant_rating_front_end/main.dart';
 
 void main() {
-  testWidgets('renders launcher page', (WidgetTester tester) async {
+  testWidgets('requires user id before entering launcher', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
+    expect(find.text('確認身份'), findsOneWidget);
+    expect(find.text('進入 Launcher'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '42');
+    await tester.tap(find.text('進入 Launcher'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Restaurant Launcher'), findsOneWidget);
-    expect(find.text('重新載入餐廳'), findsOneWidget);
+    expect(find.text('開新活動'), findsOneWidget);
+    expect(find.text('餐廳總覽'), findsOneWidget);
+    expect(find.text('活動紀錄'), findsOneWidget);
+    expect(find.text('活動標題'), findsOneWidget);
     expect(find.byTooltip('Developer Page'), findsOneWidget);
-    final textField = tester.widget<TextField>(find.byType(TextField));
-    expect(textField.controller?.text, 'http://192.168.22.22:8080');
   });
 }

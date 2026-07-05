@@ -16,7 +16,7 @@ class RatingResponse {
   });
 
   final int id;
-  final int restaurantId;
+  final int? restaurantId;
   final int? userId;
   final int? eventId;
   final int score;

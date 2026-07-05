@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'page/launcher/launcher.dart';
+import 'page/identity_gate_page.dart';
 
 export 'page/launcher/launcher.dart';
 
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: LauncherPage(),
+      home: const IdentityGatePage(),
     );
   }
 }

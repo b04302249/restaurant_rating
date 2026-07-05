@@ -1,12 +1,17 @@
 package RestaurantRating.backend.controller;
 
+import RestaurantRating.backend.entity.Rating;
+import RestaurantRating.backend.entity.Restaurant;
 import RestaurantRating.backend.entity.User;
+import RestaurantRating.backend.repository.RatingRepository;
 import RestaurantRating.backend.service.UserService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+    private final RatingRepository ratingRepository;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RatingRepository ratingRepository) {
         this.userService = userService;
+        this.ratingRepository = ratingRepository;
     }
 
     @PostMapping
@@ -41,12 +48,57 @@ public class UserController {
         return toResponse(userService.findById(id));
     }
 
+    @GetMapping("/{userId}/restaurants")
+    public List<RestaurantController.RestaurantResponse> getUserRestaurants(@PathVariable Long userId) {
+        return userService.getUserRestaurants(userId).stream()
+                .map(this::toRestaurantResponse)
+                .toList();
+    }
+
+    @PostMapping("/{userId}/restaurants/{restaurantId}")
+    public void addRestaurant(@PathVariable Long userId, @PathVariable Long restaurantId) {
+        userService.addRestaurantToUser(userId, restaurantId);
+    }
+
+    @DeleteMapping("/{userId}/restaurants/{restaurantId}")
+    public void removeRestaurant(@PathVariable Long userId, @PathVariable Long restaurantId) {
+        userService.removeRestaurantFromUser(userId, restaurantId);
+    }
+
     private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getCreatedAt()
+        );
+    }
+
+    private RestaurantController.RestaurantResponse toRestaurantResponse(Restaurant restaurant) {
+        List<RestaurantController.RatingResponse> ratings = ratingRepository.findByRestaurantId(restaurant.getId())
+                .stream()
+                .map(this::toRatingResponse)
+                .toList();
+        return new RestaurantController.RestaurantResponse(
+                restaurant.getId(),
+                restaurant.getName(),
+                restaurant.getArea(),
+                restaurant.getCategories(),
+                restaurant.getGoogleMapLink(),
+                restaurant.getBusinessHours(),
+                ratings
+        );
+    }
+
+    private RestaurantController.RatingResponse toRatingResponse(Rating rating) {
+        return new RestaurantController.RatingResponse(
+                rating.getId(),
+                rating.getUser() == null ? null : rating.getUser().getId(),
+                rating.getEvent() == null ? null : rating.getEvent().getId(),
+                rating.getScore(),
+                rating.getComment(),
+                rating.getVisitedAt(),
+                rating.getCreatedAt()
         );
     }
 

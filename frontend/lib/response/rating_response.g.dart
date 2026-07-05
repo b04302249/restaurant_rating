@@ -9,7 +9,7 @@ part of 'rating_response.dart';
 RatingResponse _$RatingResponseFromJson(Map<String, dynamic> json) =>
     RatingResponse(
       id: (json['id'] as num).toInt(),
-      restaurantId: (json['restaurantId'] as num).toInt(),
+      restaurantId: (json['restaurantId'] as num?)?.toInt(),
       userId: (json['userId'] as num?)?.toInt(),
       eventId: (json['eventId'] as num?)?.toInt(),
       score: (json['score'] as num).toInt(),
