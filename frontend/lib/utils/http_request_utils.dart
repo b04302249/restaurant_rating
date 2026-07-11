@@ -92,7 +92,7 @@ class RestaurantApiClient {
     final json = await _postJson(baseUrl, '/api/events', {
       'title': title,
       'eventDate': eventDate,
-      if (restaurantId != null) 'restaurantId': restaurantId,
+      'restaurantId': ?restaurantId,
       'participantUserIds': participantUserIds,
       'ratingIds': ratingIds,
     });
